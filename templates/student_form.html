@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Make Prediction{% endblock %}
+{% block heading %}Make Prediction{% endblock %}
+{% block content %}
+<form method="post" novalidate id="predictForm">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="card-app">
+    <div class="card-head"><h3><i class="bi bi-person-vcard"></i> Student details</h3></div>
+    <div class="row g-3">
+      {% for field in form %}{% if forloop.counter <= 6 %}
+      <div class="col-md-4">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+        {% for e in field.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>{% endif %}{% endfor %}
+    </div>
+  </div>
+  <div class="card-app mt-4">
+    <div class="card-head"><h3><i class="bi bi-graph-up"></i> Academic performance</h3>
+      <small class="muted">Do not include final-exam marks. The goal is to predict before the final exam.</small></div>
+    <div class="row g-3">
+      {% for field in form %}{% if forloop.counter > 6 %}
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+        {% for e in field.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>{% endif %}{% endfor %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button class="btn btn-primary-app btn-lg" type="submit" id="submitBtn"><i class="bi bi-magic"></i> Predict result</button>
+      <a class="btn btn-light-outline btn-lg" href="{% url 'dashboard' %}">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

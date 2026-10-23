@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block actions %}<a href="{% url 'predict' %}" class="btn btn-primary-app"><i class="bi bi-magic"></i> New Prediction</a>{% endblock %}
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-icon c-primary"><i class="bi bi-people-fill"></i></div><div><span>Total Students</span><strong>{{ stats.total }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-info"><i class="bi bi-cpu-fill"></i></div><div><span>Predicted Students</span><strong>{{ stats.predicted }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-success"><i class="bi bi-check-circle-fill"></i></div><div><span>Predicted Pass</span><strong>{{ stats.passed }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-danger"><i class="bi bi-x-circle-fill"></i></div><div><span>Predicted Fail</span><strong>{{ stats.failed }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-warning"><i class="bi bi-exclamation-triangle-fill"></i></div><div><span>High Risk Students</span><strong>{{ stats.high_risk }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-primary"><i class="bi bi-calendar-check-fill"></i></div><div><span>Average Attendance</span><strong>{{ stats.avg_attendance|floatformat:1 }}%</strong></div></div>
+</div>
+
+<div class="card-app mt-4">
+  <div class="card-head"><h3>Recent predictions</h3><a href="{% url 'prediction_history' %}">View all</a></div>
+  {% if recent %}
+  <div class="table-responsive"><table class="table-app">
+    <thead><tr><th>Student</th><th>Prediction</th><th>Pass %</th><th>Risk</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for p in recent %}
+      <tr><td><strong>{{ p.student.name }}</strong><br><small class="muted">{{ p.student.usn }}</small></td>
+        <td><span class="badge-app {% if p.prediction == 'PASS' %}b-success{% else %}b-danger{% endif %}">{{ p.prediction }}</span></td>
+        <td>{{ p.pass_probability|floatformat:1 }}%</td>
+        <td><span class="badge-app risk-{{ p.risk_level }}">{{ p.risk_level }}</span></td>
+        <td>{{ p.prediction_date|date:"d M Y, H:i" }}</td>
+        <td><a href="{% url 'prediction_result' p.pk %}">Open</a></td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% else %}
+    <div class="empty"><i class="bi bi-inbox"></i><p>No predictions yet.</p>
+      <a href="{% url 'predict' %}" class="btn btn-primary-app">Make your first prediction</a></div>
+  {% endif %}
+</div>
+{% endblock %}

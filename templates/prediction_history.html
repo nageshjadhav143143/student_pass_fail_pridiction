@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Prediction History{% endblock %}
+{% block heading %}Prediction History{% endblock %}
+{% block content %}
+<form method="get" class="filters card-app">
+  <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Search name or USN">
+  <button class="btn btn-primary-app" type="submit">Search</button>
+  <a class="btn btn-light-outline" href="{% url 'prediction_history' %}">Reset</a>
+</form>
+<div class="card-app mt-3">
+  {% if predictions %}
+  <div class="table-responsive"><table class="table-app">
+    <thead><tr><th>Student</th><th>Prediction</th><th>Pass %</th><th>Fail %</th><th>Risk</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+    {% for p in predictions %}
+      <tr><td><strong>{{ p.student.name }}</strong><br><small class="muted">{{ p.student.usn }}</small></td>
+        <td><span class="badge-app {% if p.prediction == 'PASS' %}b-success{% else %}b-danger{% endif %}">{{ p.prediction }}</span></td>
+        <td>{{ p.pass_probability|floatformat:1 }}%</td><td>{{ p.fail_probability|floatformat:1 }}%</td>
+        <td><span class="badge-app risk-{{ p.risk_level }}">{{ p.risk_level }}</span></td>
+        <td>{{ p.prediction_date|date:"d M Y, H:i" }}</td>
+        <td><a href="{% url 'prediction_result' p.pk %}">Open</a></td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% else %}
+    <div class="empty"><i class="bi bi-clock-history"></i><p>No predictions found.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

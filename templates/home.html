@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+<div class="landing">
+  <nav class="landing-nav">
+    <span class="brand dark"><i class="bi bi-mortarboard-fill"></i> PassPredict</span>
+    <div>
+      {% if user.is_authenticated %}
+        <a class="btn btn-light-outline" href="{% url 'dashboard' %}">Dashboard</a>
+      {% else %}
+        <a class="btn btn-light-outline" href="{% url 'login' %}">Login</a>
+      {% endif %}
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="hero-text">
+      <span class="pill"><i class="bi bi-stars"></i> Random Forest · Early-warning system</span>
+      <h1>Student Pass/Fail<br>Prediction System</h1>
+      <p>Predict who is likely to pass or fail <em>before</em> the final exam, using attendance and
+         academic performance, so teachers can step in early and support students at risk.</p>
+      <div class="hero-buttons">
+        {% if user.is_authenticated %}
+          <a class="btn btn-primary-app btn-lg" href="{% url 'dashboard' %}">Open Dashboard</a>
+          <a class="btn btn-light-outline btn-lg" href="{% url 'predict' %}">Make a Prediction</a>
+        {% else %}
+          <a class="btn btn-primary-app btn-lg" href="{% url 'login' %}">Login</a>
+          <a class="btn btn-light-outline btn-lg" href="{% url 'login' %}?next={% url 'dashboard' %}">Dashboard</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-ring" style="--pct:87"><div><strong>87%</strong><small>pass probability</small></div></div>
+      <ul class="hero-list">
+        <li><i class="bi bi-check-circle-fill"></i> 8 academic indicators</li>
+        <li><i class="bi bi-check-circle-fill"></i> Pass / fail probability</li>
+        <li><i class="bi bi-check-circle-fill"></i> Low · Medium · High risk</li>
+        <li><i class="bi bi-check-circle-fill"></i> Explainable feature importance</li>
+      </ul>
+      <p class="hero-note">Illustrative example. Predictions are ML estimates, not guaranteed results.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

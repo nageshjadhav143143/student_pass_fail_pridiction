@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}ML Model{% endblock %}
+{% block heading %}ML Model{% endblock %}
+{% block content %}
+{% if not metrics %}
+  <div class="card-app"><div class="empty"><i class="bi bi-exclamation-circle"></i>
+    <p>Model metrics were not found. Run <code>python ml/train_model.py</code> to train the model.</p></div></div>
+{% else %}
+<div class="stat-grid">
+  <div class="stat-card"><div class="stat-icon c-primary"><i class="bi bi-diagram-3-fill"></i></div><div><span>Algorithm</span><strong class="sm">{{ metrics.algorithm }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-success"><i class="bi bi-tree-fill"></i></div><div><span>Number of Trees</span><strong>{{ metrics.n_estimators }}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-info"><i class="bi bi-database-fill"></i></div><div><span>Dataset ({{ metrics.data_source }})</span><strong>{{ metrics.total_records }} records</strong></div></div>
+  <div class="stat-card"><div class="stat-icon c-warning"><i class="bi bi-sliders"></i></div><div><span>Features → Target</span><strong class="sm">{{ metrics.n_features }} → PASS / FAIL</strong></div></div>
+</div>
+
+<div class="chart-grid mt-4">
+  <div class="card-app">
+    <div class="card-head"><h3>Test-set performance (Random Forest)</h3></div>
+    <table class="kv">
+      <tr><td>Accuracy</td><td>{{ metrics.random_forest.accuracy|floatformat:3 }}</td></tr>
+      <tr><td>Precision (PASS)</td><td>{{ metrics.random_forest.precision|floatformat:3 }}</td></tr>
+      <tr><td>Recall (PASS)</td><td>{{ metrics.random_forest.recall|floatformat:3 }}</td></tr>
+      <tr><td>F1 score (PASS)</td><td>{{ metrics.random_forest.f1_score|floatformat:3 }}</td></tr>
+      <tr><td>ROC-AUC</td><td>{{ metrics.random_forest.roc_auc|floatformat:3 }}</td></tr>
+      <tr><td><strong>Recall (FAIL class)</strong></td><td><strong>{{ metrics.random_forest.fail_recall|floatformat:3 }}</strong></td></tr>
+    </table>
+    <p class="muted small mt-3">FAIL-class recall is the share of students who really fail that the model catches. Missing a failing student is costlier than a false alarm, so this is the metric we watch most.</p>
+  </div>
+  <div class="card-app">
+    <div class="card-head"><h3>Model comparison</h3></div>
+    <div class="table-responsive"><table class="table-app">
+      <thead><tr><th>Algorithm</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>FAIL recall</th></tr></thead>
+      <tbody>{% for name, m in metrics.comparison.items %}
+        <tr><td><strong>{{ name }}</strong></td><td>{{ m.accuracy|floatformat:3 }}</td><td>{{ m.precision|floatformat:3 }}</td>
+            <td>{{ m.recall|floatformat:3 }}</td><td>{{ m.f1_score|floatformat:3 }}</td><td>{{ m.fail_recall|floatformat:3 }}</td></tr>
+      {% endfor %}</tbody></table></div>
+    <p class="muted small mt-3">Values are measured on the held-out 20% test set. Dataset is synthetic.</p>
+  </div>
+  <div class="card-app"><div class="card-head"><h3>Feature importance</h3></div><div class="chart-box"><canvas id="cImp"></canvas></div></div>
+  <div class="card-app"><div class="card-head"><h3>Confusion matrix</h3></div>
+    <img class="chart-img" src="{% static 'charts/confusion_matrix.png' %}" alt="Confusion matrix"></div>
+  <div class="card-app"><div class="card-head"><h3>ROC curve</h3></div>
+    <img class="chart-img" src="{% static 'charts/roc_curve.png' %}" alt="ROC curve"></div>
+  <div class="card-app"><div class="card-head"><h3>Model comparison chart</h3></div>
+    <img class="chart-img" src="{% static 'charts/model_comparison.png' %}" alt="Model comparison"></div>
+</div>
+{{ importance|json_script:"imp-data" }}
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{% if metrics %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const imp = JSON.parse(document.getElementById("imp-data").textContent);
+  new Chart("cImp", {type: "bar", options: {responsive: true, maintainAspectRatio: false, indexAxis: "y", plugins: {legend: {display: false}}},
+    data: {labels: Object.keys(imp), datasets: [{data: Object.values(imp),
+      backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()}]}});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Students{% endblock %}
+{% block heading %}Students{% endblock %}
+{% block actions %}<a href="{% url 'add_student' %}" class="btn btn-primary-app"><i class="bi bi-person-plus"></i> Add Student</a>{% endblock %}
+{% block content %}
+<form method="get" class="filters card-app">
+  <input type="search" name="q" value="{{ f.q }}" class="form-control" placeholder="Search name or USN">
+  <select name="department" class="form-select"><option value="">All departments</option>
+    {% for d in departments %}<option value="{{ d }}" {% if f.department == d %}selected{% endif %}>{{ d }}</option>{% endfor %}</select>
+  <select name="semester" class="form-select"><option value="">All semesters</option>
+    {% for s in semesters %}<option value="{{ s }}" {% if f.semester == s|stringformat:"s" %}selected{% endif %}>Sem {{ s }}</option>{% endfor %}</select>
+  <select name="result" class="form-select"><option value="">Pass / Fail</option>
+    <option value="PASS" {% if f.result == "PASS" %}selected{% endif %}>PASS</option>
+    <option value="FAIL" {% if f.result == "FAIL" %}selected{% endif %}>FAIL</option></select>
+  <select name="risk" class="form-select"><option value="">All risk levels</option>
+    <option value="LOW" {% if f.risk == "LOW" %}selected{% endif %}>Low</option>
+    <option value="MEDIUM" {% if f.risk == "MEDIUM" %}selected{% endif %}>Medium</option>
+    <option value="HIGH" {% if f.risk == "HIGH" %}selected{% endif %}>High</option></select>
+  <button class="btn btn-primary-app" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+  <a class="btn btn-light-outline" href="{% url 'students' %}">Reset</a>
+</form>
+<div class="card-app mt-3">
+  {% if students %}
+  <div class="table-responsive"><table class="table-app">
+    <thead><tr><th>Name</th><th>USN</th><th>Dept</th><th>Sem</th><th>Attendance</th><th>Internal</th>
+      <th>Prediction</th><th>Pass %</th><th>Risk</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for s in students %}
+      <tr><td><strong>{{ s.name }}</strong></td><td>{{ s.usn }}</td><td>{{ s.department }}</td><td>{{ s.semester }}</td>
+        <td>{% if s.last_attendance is not None %}{{ s.last_attendance|floatformat:1 }}%{% else %}—{% endif %}</td>
+        <td>{% if s.last_internal is not None %}{{ s.last_internal|floatformat:1 }}{% else %}—{% endif %}</td>
+        <td>{% if s.last_prediction %}<span class="badge-app {% if s.last_prediction == 'PASS' %}b-success{% else %}b-danger{% endif %}">{{ s.last_prediction }}</span>{% else %}<span class="muted">Not predicted</span>{% endif %}</td>
+        <td>{% if s.last_pass_prob is not None %}{{ s.last_pass_prob|floatformat:1 }}%{% else %}—{% endif %}</td>
+        <td>{% if s.last_risk %}<span class="badge-app risk-{{ s.last_risk }}">{{ s.last_risk }}</span>{% else %}—{% endif %}</td>
+        <td>{% if s.last_pred_date %}{{ s.last_pred_date|date:"d M Y" }}{% else %}—{% endif %}</td>
+        <td class="actions">
+          {% if s.last_pred_id %}<a href="{% url 'prediction_result' s.last_pred_id %}" title="View result"><i class="bi bi-eye"></i></a>{% endif %}
+          <a href="{% url 'predict' %}?student={{ s.pk }}" title="New prediction"><i class="bi bi-magic"></i></a>
+          <form method="post" action="{% url 'delete_student' s.pk %}" data-confirm="Delete {{ s.name }} and all their records?">{% csrf_token %}
+            <button type="submit" title="Delete" class="danger"><i class="bi bi-trash"></i></button></form>
+        </td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  {% else %}
+    <div class="empty"><i class="bi bi-people"></i><p>No students match your filters.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

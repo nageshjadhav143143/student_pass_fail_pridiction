@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block heading %}Analytics{% endblock %}
+{% block content %}
+{% if not has_data %}
+  <div class="card-app"><div class="empty"><i class="bi bi-bar-chart-line"></i>
+    <p>Charts appear once at least one prediction exists.</p>
+    <a href="{% url 'predict' %}" class="btn btn-primary-app">Make a prediction</a></div></div>
+{% endif %}
+<div class="chart-grid">
+  <div class="card-app"><div class="card-head"><h3>Pass vs Fail</h3></div><div class="chart-box"><canvas id="cPassFail"></canvas></div></div>
+  <div class="card-app"><div class="card-head"><h3>Risk-level distribution</h3></div><div class="chart-box"><canvas id="cRisk"></canvas></div></div>
+  <div class="card-app"><div class="card-head"><h3>Attendance vs Prediction</h3><small class="muted">Each dot is a student</small></div><div class="chart-box"><canvas id="cScatter"></canvas></div></div>
+  <div class="card-app"><div class="card-head"><h3>Average attendance &amp; internal marks by prediction</h3></div><div class="chart-box"><canvas id="cAvg"></canvas></div></div>
+  <div class="card-app"><div class="card-head"><h3>Department-wise performance</h3></div><div class="chart-box"><canvas id="cDept"></canvas></div></div>
+  <div class="card-app"><div class="card-head"><h3>Feature importance</h3><small class="muted">From the trained model</small></div><div class="chart-box"><canvas id="cImp"></canvas></div></div>
+</div>
+{{ data|json_script:"analytics-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const d = JSON.parse(document.getElementById("analytics-data").textContent);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const C = {primary: css("--primary"), success: css("--success"), danger: css("--danger"), warning: css("--warning")};
+  Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+  const opts = {responsive: true, maintainAspectRatio: false};
+
+  new Chart("cPassFail", {type: "doughnut", options: opts,
+    data: {labels: ["Pass", "Fail"], datasets: [{data: d.pass_fail, backgroundColor: [C.success, C.danger]}]}});
+  new Chart("cRisk", {type: "bar", options: {...opts, plugins: {legend: {display: false}}},
+    data: {labels: ["Low", "Medium", "High"], datasets: [{data: d.risk, backgroundColor: [C.success, C.warning, C.danger]}]}});
+  new Chart("cScatter", {type: "scatter", options: {...opts,
+      scales: {x: {title: {display: true, text: "Attendance %"}}, y: {title: {display: true, text: "Pass probability %"}, min: 0, max: 100}}},
+    data: {datasets: [
+      {label: "Predicted PASS", data: d.scatter.filter(p => p.result === "PASS"), backgroundColor: C.success},
+      {label: "Predicted FAIL", data: d.scatter.filter(p => p.result === "FAIL"), backgroundColor: C.danger}]}});
+  new Chart("cAvg", {type: "bar", options: opts,
+    data: {labels: ["Predicted PASS", "Predicted FAIL"], datasets: [
+      {label: "Avg attendance %", data: d.attendance, backgroundColor: C.primary},
+      {label: "Avg internal marks", data: d.internal, backgroundColor: C.warning}]}});
+  new Chart("cDept", {type: "bar", options: {...opts, scales: {x: {stacked: true}, y: {stacked: true}}},
+    data: {labels: d.departments, datasets: [
+      {label: "Pass", data: d.dept_pass, backgroundColor: C.success},
+      {label: "Fail", data: d.dept_fail, backgroundColor: C.danger}]}});
+  new Chart("cImp", {type: "bar", options: {...opts, indexAxis: "y", plugins: {legend: {display: false}}},
+    data: {labels: Object.keys(d.importance), datasets: [{data: Object.values(d.importance), backgroundColor: C.primary}]}});
+})();
+</script>
+{% endblock %}

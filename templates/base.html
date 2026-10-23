@@ -1,0 +1,55 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Student Prediction{% endblock %} · PassPredict</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% block body %}
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <a href="{% url 'home' %}" class="brand"><i class="bi bi-mortarboard-fill"></i><span>PassPredict</span></a>
+    {% with page=request.resolver_match.url_name %}
+    <nav class="nav-list">
+      <a href="{% url 'dashboard' %}" class="{% if page == 'dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i>Dashboard</a>
+      <a href="{% url 'students' %}" class="{% if page == 'students' %}active{% endif %}"><i class="bi bi-people"></i>Students</a>
+      <a href="{% url 'add_student' %}" class="{% if page == 'add_student' %}active{% endif %}"><i class="bi bi-person-plus"></i>Add Student</a>
+      <a href="{% url 'predict' %}" class="{% if page == 'predict' or page == 'prediction_result' %}active{% endif %}"><i class="bi bi-magic"></i>Make Prediction</a>
+      <a href="{% url 'prediction_history' %}" class="{% if page == 'prediction_history' %}active{% endif %}"><i class="bi bi-clock-history"></i>Prediction History</a>
+      <a href="{% url 'analytics' %}" class="{% if page == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart-line"></i>Analytics</a>
+      <a href="{% url 'model_info' %}" class="{% if page == 'model_info' %}active{% endif %}"><i class="bi bi-diagram-3"></i>ML Model</a>
+      {% if user.is_staff %}<a href="/admin/"><i class="bi bi-shield-lock"></i>Admin</a>{% endif %}
+    </nav>
+    {% endwith %}
+    <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}
+      <button type="submit"><i class="bi bi-box-arrow-left"></i>Logout ({{ user.username }})</button>
+    </form>
+  </aside>
+  <div class="sidebar-backdrop" id="backdrop"></div>
+  <main class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle menu"><i class="bi bi-list"></i></button>
+      <h1 class="page-title">{% block heading %}{% endblock %}</h1>
+      <div class="topbar-actions">{% block actions %}{% endblock %}</div>
+    </header>
+    <section class="content">
+      {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} app-alert" role="alert">{{ message }}</div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+</div>
+{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/script.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

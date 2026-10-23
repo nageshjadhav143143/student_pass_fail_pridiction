@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Add Student{% endblock %}
+{% block heading %}Add Student{% endblock %}
+{% block content %}
+<div class="card-app narrow">
+  <form method="post" novalidate>{% csrf_token %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-md-6">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for e in field.errors %}<div class="field-error">{{ e }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-4"><button class="btn btn-primary-app" type="submit">Save &amp; continue to prediction</button></div>
+  </form>
+</div>
+{% endblock %}
